@@ -25,12 +25,18 @@ export class SiteLocationService {
 
   async getAll(): Promise<any> {
     try {
-      const locations = await this.siteLocationModel.find().exec();
+      const locations = await this.siteLocationModel.find({
+        $or: [
+          { deletedAt: null },
+          { deletedAt: { $exists: false } }
+        ]
+      }).exec();
       return formatResponse('success', 200, 'Site locations retrieved successfully', locations);
     } catch (error) {
       throw new InternalServerErrorException('Failed to retrieve site locations');
     }
   }
+
 
   async get(id: string): Promise<any> {
     try {
@@ -59,12 +65,14 @@ export class SiteLocationService {
   async registerSiteLocation(
     siteName: string,
     sitePolygon: { lat: number; lng: number }[],
+    siteCity: string,
   ): Promise<any> {
     try {
       const newLocation = new this.siteLocationModel({
         id: uuidv4(),
         siteName,
         sitePolygon,
+        siteCity,
       });
       const savedLocation = await newLocation.save();
       return formatResponse('success', 201, 'Site location registered successfully', savedLocation);
@@ -72,4 +80,23 @@ export class SiteLocationService {
       throw new InternalServerErrorException('Failed to register site location');
     }
   }
+
+  async softDeleteSiteLocation(id: string): Promise<any> {
+    try {
+      const updated = await this.siteLocationModel.findByIdAndUpdate(id,
+        { $set: { deletedAt: new Date() } },
+        { new: true }
+      );
+
+      if (!updated) {
+        throw new NotFoundException('Site location not found or already deleted');
+      }
+
+      return formatResponse('success', 200, 'Site location soft deleted successfully', updated);
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Failed to soft delete site location');
+    }
+  }
+
 }

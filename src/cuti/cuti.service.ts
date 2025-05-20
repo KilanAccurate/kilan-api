@@ -180,7 +180,7 @@ export class CutiService {
                 this.fcmService.sendNotification(
                     user._id.toString(),
                     superior._id.toString(),
-                    `Pengajuan Lembur dari ${user.fullName}`,
+                    `Pengajuan Cuti dari ${user.fullName}`,
                     `Hai ${superior.fullName}, ${user.fullName} telah mengajukan cuti.`,
                     {
                         'cutiId': saved._id.toString(),
